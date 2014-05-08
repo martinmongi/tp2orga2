@@ -83,16 +83,19 @@ xlabel('Imagen');
 ylabel('Numero de ciclos insumidos');
 set(gca,'XTickLabel',{'256x256', '512x512', '1024x1024', '2048x2048',''});
 
+%%
+%Tiles memmory intensive
+A = [2508705 3541257;
+    9833058 12846618;
+    36131364 43634394;
+    139478877 182067372];
 
+bar(A);
+legend('ASM normal', 'ASM con doble acceso a memoria', 'Location', 'NorthWest');
 
-
-
-
-
-
-
-
-
+xlabel('Imagen');
+ylabel('Numero de ciclos insumidos');
+set(gca,'XTickLabel',{'256x256', '512x512', '1024x1024', '2048x2048',''});
 
 
 
