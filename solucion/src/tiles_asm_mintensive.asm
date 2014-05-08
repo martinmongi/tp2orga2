@@ -91,10 +91,12 @@ tiles_asm:
 	ADD R9, RAX									;R9 = puntero a la tira de pixeles en src
 	
 	MOV EAX, [RSP + offset_#cols] 					
+	MOV EAX, [RSP + offset_#cols] 					
 	LEA EAX, [EAX - 6]
 	CMP R10d, EAX 								;me fijo si me faltan menos de 6 pixeles a pintar en dst
 	JA .terminar_fila  							;si me faltan menos de seis pixeles salto
 
+	MOV EAX, [RBP + offset_tamx]
 	MOV EAX, [RBP + offset_tamx]
 	ADD EAX, R14d                         
 	LEA EAX, [EAX - 6]
@@ -104,6 +106,8 @@ tiles_asm:
 .copiar_pixeles:
 
 	MOVDQU XMM0, [R9]                                
+	MOVDQU XMM0, [R9]                                
+	MOVDQU [R8], XMM0
 	MOVDQU [R8], XMM0
 	ADD R10d, 5 									;copio 5 pixeles por cada iteracion
 	ADD R12d, 5
@@ -111,6 +115,7 @@ tiles_asm:
 
 .terminar_bloque:
 	
+	MOV EDX, [RBP + offset_tamx]
 	MOV EDX, [RBP + offset_tamx]
 	ADD EDX, R14d 							;rdx es la columna hasta donde llega el bloque a copiar 
 	SUB EDX, 6                              ;en rdx tengo hasta donde tengo que retroceder r12 y r10, para que falten 6 pixeles a copiar
@@ -140,6 +145,8 @@ tiles_asm:
  	ADD R8, 2
 	ADD R9, 2 									; les sumo dos para poder pegar los 5 pixeles que me faltaban y que me entre justo en 16b
 	MOVDQU XMM0, [R9]
+	MOVDQU XMM0, [R9]
+	MOVDQU [R8], XMM0
 	MOVDQU [R8], XMM0
 	ADD R10, 6
 	MOV R12d, [RBP + offset_offsetx]
@@ -148,8 +155,10 @@ tiles_asm:
 .terminar_fila:
 	
 	MOV EAX, [RSP + offset_#cols]
+	MOV EAX, [RSP + offset_#cols]
 	SUB EAX, R10d 		                    ;CANTIDAD DE PIXELES QUE FALTAN DE DST
 	PUSH RAX
+	MOV EAX, [RBP + offset_tamx]
 	MOV EAX, [RBP + offset_tamx]
 	ADD EAX, R14d
 	SUB EAX, R12d                      		;CANTIDAD DE PIXELES QUE FALTAN DE SRC
@@ -179,6 +188,7 @@ tiles_asm:
 	SUB RSP, 8
 	PUSH RDX 								;R12 VIEJO
 	MOV RDX, [RSP + offset_#cols + 8]       ; le sume un 8 porque ahora tengo pusheado el r12 viejo tambien
+	MOV RDX, [RSP + offset_#cols + 8]       ; le sume un 8 porque ahora tengo pusheado el r12 viejo tambien
 	SUB RDX, 6                     
 	MOV RAX, offset_pix                     ;rdx = puntero a la columna faltando 6 pixeles
 	MUL RDX   
@@ -188,6 +198,8 @@ tiles_asm:
 	ADD R9, RAX 							;en r9 tengo apuntando a los 6 pixeles siguientes a copiar (no voy a usar todos)
 	ADD R8, 2								;sumo dos para poder pegar los ultimos 15 pix y que me entre justo en 16b
 	MOVDQU XMM0, [R9]				
+	MOVDQU XMM0, [R9]				
+	MOVDQU XMM1, [R8] 						;ultimos 16 bits de destino
 	MOVDQU XMM1, [R8] 						;ultimos 16 bits de destino
 	POP RAX                                 ;RAX = R12 VIEJO
 	PUSH RAX
@@ -204,6 +216,7 @@ tiles_asm:
 
 	POP R12                                 ;R12 VIEJO
 	MOV RAX, [RSP + offset_#cols]           ;voy a limpiar los pixeles que van a ocupar los del src
+	MOV RAX, [RSP + offset_#cols]           ;voy a limpiar los pixeles que van a ocupar los del src
 
 .limpiar_dst2:
 
@@ -215,6 +228,7 @@ tiles_asm:
 
 .limpiar_src:
 
+	MOV RAX, [RSP + offset_#cols]          ;limpio los pixeles que van a ocupar los del dst
 	MOV RAX, [RSP + offset_#cols]          ;limpio los pixeles que van a ocupar los del dst
 	SUB RAX, R10
 	MOV RDX, offset_pix
@@ -232,6 +246,8 @@ tiles_asm:
 	
 	MOV RAX, [RSP + offset_#cols]         ;el destino vuelve a donde estaba porque estaban bien ubicado, el src tiene qe quedar
 										  ;como quedo dsp de limpiar los pixeles que no correspondian.
+	MOV RAX, [RSP + offset_#cols]         ;el destino vuelve a donde estaba porque estaban bien ubicado, el src tiene qe quedar
+	
 .volver_dst2:
 
 	CMP RAX, R10
@@ -243,6 +259,7 @@ tiles_asm:
 .listo2:
 	
 	POR XMM0, XMM1                         ;junto los pixeles de dst y src
+	MOVDQU [R8], XMM0	
 	MOVDQU [R8], XMM0	
 	INC R11d 									;modifico los iteradores para bajar de fila
 	INC R13d

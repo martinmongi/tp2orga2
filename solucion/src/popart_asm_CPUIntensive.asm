@@ -135,8 +135,6 @@ push RSI					; en RDX viene el resto
 push RCX					; en RCX la cantidad de filas
 							; R8, R9, src_Rows_size
 							;RDI, RSI, punteros src, dst
-
-
 comienzo_fila:
 
 		 
@@ -144,27 +142,110 @@ comienzo_fila:
 		push RSI
 		mov R12, R13			; en r12d tengo la cantidad de columnas bytes que tengo, le voy a quitar de a 15 hasta llegar al modulo (sobrantes)
 
-		movdqu xmm7, [RDI]
-		add rdi, 15
-
 		cicloColDeRow:
 		PXOR XMM15, XMM15
+		
+		movdqu xmm0, [RDI]		; tengo en xmm0(para b), xmm1 (para g), xmm2(para r), los 5 pixeles, voy a separar los colores aplicando mascaras
+		movdqu xmm1, xmm0	
+		movdqu xmm2, xmm0
+		movdqu xmm3, xmm0
+		movdqu xmm4, xmm0
+		
+		pslldq xmm0, 13			; PIXEL mas a la izquierda de la imagen   
+										
+		psrldq xmm0, 13			; 
+		PUNPCKLBW XMM0, XMM15 
+		movdqu xmm5,xmm0     	; 
+		movdqu xmm6,xmm0
+		
+		psrldq xmm0, 4		; RED
+		pslldq xmm5, 12		; GREEN
+		psrldq xmm5, 14
+		pslldq xmm6, 14		; BLUE
+		psrldq xmm6, 14
+		
+		paddw xmm0, xmm5
+		paddw xmm0, xmm6
+		
+		pslldq xmm1, 10			; 
+		psrldq xmm1, 13			
+		PUNPCKLBW XMM1, XMM15
+		movdqu xmm5,xmm1		; 
+		movdqu xmm6,xmm1		; 
+		
+		psrldq xmm1, 4		; RED
+		pslldq xmm5, 12		; GREEN
+		psrldq xmm5, 14
+		pslldq xmm6, 14		; BLUE
+		psrldq xmm6, 14
+		
+		paddw xmm1, xmm5
+		paddw xmm1, xmm6
+		
+		pslldq xmm2, 7
+		psrldq xmm2, 13			; 
+		PUNPCKLBW XMM2, XMM15
+		movdqu xmm5,xmm2		; 
+		movdqu xmm6,xmm2		;
+		
+		psrldq xmm2, 4		; RED
+		pslldq xmm5, 12		; GREEN
+		psrldq xmm5, 14
+		pslldq xmm6, 14		; BLUE
+		psrldq xmm6, 14
+		
+		paddw xmm2, xmm5
+		paddw xmm2, xmm6
+		
+		pslldq xmm3, 4
+		psrldq xmm3, 13			; 
+		PUNPCKLBW XMM3, XMM15
+		movdqu xmm5,xmm3		; 
+		movdqu xmm6,xmm3		;
+		
+		psrldq xmm3, 4		; RED
+		pslldq xmm5, 12		; GREEN
+		psrldq xmm5, 14
+		pslldq xmm6, 14		; BLUE
+		psrldq xmm6, 14
+		
+		paddw xmm3, xmm5
+		paddw xmm3, xmm6
+		
+		pslldq xmm4, 1			; pixel mas a la derecha.
+		psrldq xmm4, 13			; 
+		PUNPCKLBW XMM4, XMM15
+		movdqu xmm5,xmm4		; 
+		movdqu xmm6,xmm4		;
+		
+		psrldq xmm4, 4		; RED
+		pslldq xmm5, 12		; GREEN
+		psrldq xmm5, 14
+		pslldq xmm6, 14		; BLUE
+		psrldq xmm6, 14
+		
+		paddw xmm4, xmm5
+		paddw xmm4, xmm6
 
-		movdqu xmm0, xmm7
-		mov rax, r12
-		sub rax, 15
-		cmp rdx, rax
-		je .listo1
-
-		movdqu xmm7, [RDI]
-		jmp .listo2
-
-.listo1:
-
-		sub rdi, 15		
-
-.listo2:
-
+		PXOR xmm15, xmm15
+		
+		POR xmm15, xmm0
+		pslldq xmm1, 2
+		POR xmm15, xmm1
+		pslldq xmm2, 6
+		POR xmm15, xmm2
+		pslldq xmm3, 8
+		POR xmm15, xmm3
+		pslldq xmm4, 12
+		POR xmm15, xmm4
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+		movdqu xmm1, xmm15
+		movdqu xmm2, xmm15
+		movdqu xmm3, xmm15
+		movdqu xmm4, xmm15
+		movdqu xmm5, xmm15
+		
+		movdqu xmm0, [RDI]		; tengo en xmm0(para b), xmm1 (para g), xmm2(para r), los 5 pixeles, voy a separar los colores aplicando mascaras
 		movdqu xmm1, xmm0	
 		movdqu xmm2, xmm0
 		movdqu xmm3, xmm0

@@ -97,9 +97,33 @@ xlabel('Imagen');
 ylabel('Numero de ciclos insumidos');
 set(gca,'XTickLabel',{'256x256', '512x512', '1024x1024', '2048x2048',''});
 
+%%
+%Prefetch
+A = [3365442 3596193;
+    12336318 12666141;
+    53034660 52545690;
+    195393888 192229758;
+    799941375 678760884]
 
+bar(A);
+legend('ASM Normal', 'ASM con Prefetch', 'Location', 'NorthWest');
 
+xlabel('Imagen');
+ylabel('Numero de ciclos insumidos');
+set(gca,'XTickLabel',{'256x256', '512x512', '1024x1024', '2048x2048','4096x4096',''});
 
+%%
+%Popart CPU Intensive
 
+A = [3365442 3830670;
+    12336318 14826492;
+    53034660 62450334;
+    195393888 234618012;
+    799941375 921989988]
 
+bar(A);
+legend('ASM Normal', 'ASM con Doble Calculo', 'Location', 'NorthWest');
 
+xlabel('Imagen');
+ylabel('Numero de ciclos insumidos');
+set(gca,'XTickLabel',{'256x256', '512x512', '1024x1024', '2048x2048','4096x4096',''});

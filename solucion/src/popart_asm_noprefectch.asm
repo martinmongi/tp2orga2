@@ -135,8 +135,6 @@ push RSI					; en RDX viene el resto
 push RCX					; en RCX la cantidad de filas
 							; R8, R9, src_Rows_size
 							;RDI, RSI, punteros src, dst
-
-
 comienzo_fila:
 
 		 
@@ -144,27 +142,10 @@ comienzo_fila:
 		push RSI
 		mov R12, R13			; en r12d tengo la cantidad de columnas bytes que tengo, le voy a quitar de a 15 hasta llegar al modulo (sobrantes)
 
-		movdqu xmm7, [RDI]
-		add rdi, 15
-
 		cicloColDeRow:
 		PXOR XMM15, XMM15
-
-		movdqu xmm0, xmm7
-		mov rax, r12
-		sub rax, 15
-		cmp rdx, rax
-		je .listo1
-
-		movdqu xmm7, [RDI]
-		jmp .listo2
-
-.listo1:
-
-		sub rdi, 15		
-
-.listo2:
-
+		
+		movdqu xmm0, [RDI]		; tengo en xmm0(para b), xmm1 (para g), xmm2(para r), los 5 pixeles, voy a separar los colores aplicando mascaras
 		movdqu xmm1, xmm0	
 		movdqu xmm2, xmm0
 		movdqu xmm3, xmm0

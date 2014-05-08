@@ -67,6 +67,11 @@ mask_limpiarUltPixs:
 				DB 0xFF, 0xFF, 0xFF, 0xFF,
 				DB 0xFF, 0xFF, 0x00, 0x00,
 				DB 0x00, 0x00, 0x00, 0x00
+ALIGN 16
+mask_ceros: 	DB 0x00, 0x00, 0x00, 0x00,
+				DB 0x00, 0x00, 0x00, 0x00,
+				DB 0x00, 0x00, 0x00, 0x00,
+				DB 0x00, 0x00, 0x00, 0x00
 
 section .text
 ;void ldr_asm    
@@ -195,6 +200,7 @@ barrida_nueva:
 		
 		movdqu xmm1, xmm0 
 		movdqu xmm2, xmm0 
+		sumargb_ok:
 		; en XMM0/XMM1/XMM2 ACA YA TENGO SUMARGB
 		
 		movdqu XMM3, [RDI + 2*R8] ; necesito el pixel del medio
@@ -221,13 +227,25 @@ barrida_nueva:
 		;movdqu xmm6, [RBP + 16]					; RECUPERO EL ALFA
 		;pand xmm6, [mask_limpiarHigh]		
 		movdqu xmm6, [RBP + 16]		
+		movdqu xmm12, xmm6
+		;movdqu xmm15, xmm6
+		mov RAX, QWORD[RBP + 16]
+		;ver_rax:
+	
 		
 		
-		PMULUDQ xmm0, xmm6	
+		pslldq xmm6, 12
+		psrldq xmm6, 12
+
 		
-		PMULUDQ xmm1, xmm6
 		
-		PMULUDQ xmm2, xmm6
+
+		ver_mult:
+		PMULDQ xmm0, xmm6	
+		
+		PMULDQ xmm1, xmm6
+		
+		PMULDQ xmm2, xmm6
 		break_doubles:
 		
 		CVTDQ2PD XMM0,XMM0
@@ -247,9 +265,78 @@ barrida_nueva:
 		DIVPD XMM2,	XMM6
 		PAND XMM2, [mask_soloInteresaFstQw] 
 	
-		CVTTPD2DQ XMM0, XMM0          ; varb             en xmm3 tengo el blue del a modificar
-		CVTTPD2DQ XMM1, XMM1			 ; varg				en xmm4 tengo el green
-		CVTTPD2DQ XMM2, XMM2          ;varr              en xmm5 el red
+		CVTTPD2DQ XMM0, XMM0          ; varb      Y       en xmm3 tengo el blue del a modificar
+		CVTTPD2DQ XMM1, XMM1		  ; varg		Y		en xmm4 tengo el green
+		CVTTPD2DQ XMM2, XMM2          ;varr          Y    en xmm5 el red
+		
+			
+		;mov r11, qword[mask_alinearRBX]
+		
+		;OR RAX, R11
+		loop:
+		cmp EAX, 0
+		JGE alfa_era_mayor_igual_a_0
+		
+		
+		; aca estoy si tengo un alfa menor a 0, tengo el alfa en XMM12
+		alfa_menor_a_0:	
+		
+		
+		
+		
+		PADDW XMM0, XMM3	; en xmm3 tengo el color del pixel source sera el destino (VARB + p*s.b)
+		pslldq XMM0, 14
+		psrldq XMM0, 14
+		movdqu xmm14, xmm0
+		PCMPGTW xmm14, [mask_ceros]
+		PAND XMM0, xmm14
+		pslldq XMM0, 15
+		psrldq XMM0, 15
+		
+		PADDW XMM1, xmm4     ; dest g
+		pslldq XMM1, 14
+		psrldq XMM1, 14
+		movdqu xmm14, xmm1
+		PCMPGTW xmm14, [mask_ceros]
+		PAND XMM1, XMM14
+		pslldq XMM1, 15
+		psrldq XMM1, 15
+		
+		PADDW XMM2, xmm5
+		pslldq XMM2, 14
+		psrldq XMM2, 14
+		movdqu xmm14, xmm2
+		PCMPGTW xmm14, [mask_ceros]
+		PAND  XMM2,XMM14
+		pslldq XMM2, 15
+		psrldq XMM2, 15
+		
+		
+		pslldq xmm0, 6 ;BLUE
+		pslldq xmm1, 7 ; GREEN
+		pslldq xmm2, 8 ; RED
+		
+		
+		;pslldq xmm0, 14
+		;pslldq xmm1, 14
+		;pslldq xmm2, 14
+		;psrldq xmm0, 14
+		;psrldq xmm1, 14
+		;psrldq xmm2, 14
+		
+		;movdqu xmm12, xmm0
+		;movdqu xmm13, xmm1
+		;movdqu xmm14, xmm2
+		
+		;pslldq xmm0, 6 
+		;pslldq xmm1, 7
+		;pslldq xmm2, 8
+		jmp poxear
+		
+		
+		
+		
+		alfa_era_mayor_igual_a_0:
 		
 		PADDUSB XMM0, xmm3     ; dest b
 		PADDUSB XMM1, xmm4     ; dest g
@@ -259,6 +346,11 @@ barrida_nueva:
 		pslldq xmm1, 7
 		pslldq xmm2, 8
 		
+		
+		
+		
+		
+		poxear:
 		PXOR XMM4, XMM4 ; aca voy a meter el unico pixel procesado para subirlo a img dest
 		
 		POR XMM4, xmm0
