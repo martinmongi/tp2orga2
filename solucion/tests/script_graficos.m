@@ -67,3 +67,36 @@ legend('Assembler', 'C', 'Location', 'NorthWest');
 xlabel('Imagen');
 ylabel('Numero de ciclos insumidos');
 set(gca,'XTickLabel',{'256x256', '512x512', '1024x1024', '2048x2048',''});
+
+%%
+%Popart C vs Popart C No Jumps
+
+A = [3107511 3754809;
+    12194442 12919113;
+    45938772 44203320;
+    158648121 141643071];
+
+bar(A);
+legend('C -O1 con saltos', 'C -O1 sin saltos', 'Location', 'NorthWest');
+
+xlabel('Imagen');
+ylabel('Numero de ciclos insumidos');
+set(gca,'XTickLabel',{'256x256', '512x512', '1024x1024', '2048x2048',''});
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
