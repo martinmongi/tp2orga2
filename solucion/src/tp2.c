@@ -23,11 +23,12 @@ filtro_t filtros[] = {
 
 void correr_filtro_video(configuracion_t *config, aplicador_fn_t aplicador);
 void correr_filtro_imagen(configuracion_t *config, aplicador_fn_t aplicador);
+int cmpfunc (const void * a, const void * b);
 
 int main( int argc, char** argv ) {
 
 	configuracion_t config;
-	unsigned long long int start, end, cuenta = 0, min = 0;
+	unsigned long long int start, end, cuenta = 0;
 
 	procesar_opciones(argc, argv, &config);
 	// Imprimo info
@@ -46,28 +47,31 @@ int main( int argc, char** argv ) {
 
 	
 	if(config.cant_iteraciones < 1) config.cant_iteraciones = 1;
+
+	unsigned long long int *v = malloc(config.cant_iteraciones*sizeof(unsigned long long int));
 	
 	if (config.es_video){
 		for(unsigned int i = 0; i < config.cant_iteraciones; i++){
 			MEDIR_TIEMPO_START(start);
 			correr_filtro_video(&config, filtro->aplicador);
 			MEDIR_TIEMPO_STOP(end);
-			cuenta = cuenta + end - start;
-			if((min == 0) || (min > end - start)) min = end - start;
+			v[i] = end - start;
+			cuenta = cuenta + v[i];
 		}
 	}else{
 		for(unsigned int i = 0; i < config.cant_iteraciones; i++){
 			MEDIR_TIEMPO_START(start);
 			correr_filtro_imagen(&config, filtro->aplicador);
 			MEDIR_TIEMPO_STOP(end);
-			cuenta = cuenta + end - start;
-			if((min == 0) || (min > end - start)) min = end - start;
+			v[i] = end - start;
+			cuenta = cuenta + v[i];
 		}
 	}
 	
+	qsort(v, config.cant_iteraciones, sizeof(unsigned long long int), cmpfunc);
 
 	if (!config.nombre)
-		imprimir_tiempos_ejecucion(cuenta, min, config.cant_iteraciones);
+		imprimir_tiempos_ejecucion(cuenta, v[config.cant_iteraciones/2], config.cant_iteraciones);
 
 	return 0;
 }
@@ -131,8 +135,11 @@ void imprimir_tiempos_ejecucion(unsigned long long int cuenta, unsigned long lon
 	//printf("  Fin                               : %llu\n", end);
 	printf("  # iteraciones                                : %d\n", cant_iteraciones);
 	printf("  # de ciclos insumidos totales                : %llu\n", cuenta);
-	printf("  # de ciclos insumidos por llamada mas corta  : %llu\n", min);
+	printf("  # de ciclos insumidos por llamada mediana    : %llu\n", min);
 }
 
 
 
+int cmpfunc (const void * a, const void * b){
+   return ( *(int*)a - *(int*)b );
+}
